@@ -1,0 +1,84 @@
+{
+  "teams": [
+    {
+      "id": 1,
+      "name": "Jahody",
+      "points": 0,
+      "image": "/uploads/team-1.png"
+    },
+    {
+      "id": 2,
+      "name": "Invalids",
+      "points": 0,
+      "image": "/uploads/team-2.jpg"
+    },
+    {
+      "id": 3,
+      "name": "LCK",
+      "points": 0,
+      "image": "/uploads/team-3.jpg"
+    },
+    {
+      "id": 4,
+      "name": "MajstriDigiSquad",
+      "points": 0,
+      "image": "/uploads/team-4.png"
+    },
+    {
+      "id": 5,
+      "name": "Suflikare",
+      "points": 0,
+      "image": "/uploads/team-5.jpg"
+    },
+    {
+      "id": 6,
+      "name": "Jedine boti",
+      "points": 0,
+      "image": "/uploads/team-6.jpg"
+    },
+    {
+      "id": 7,
+      "name": "ZTP",
+      "points": 0,
+      "image": "/uploads/team-7.jpg"
+    },
+    {
+      "id": 8,
+      "name": "White power",
+      "points": 0,
+      "image": "/uploads/team-8.png"
+    }
+  ],
+  "quarterfinals": {
+    "match1": {
+      "team1": null,
+      "team2": null
+    },
+    "match2": {
+      "team1": null,
+      "team2": null
+    },
+    "match3": {
+      "team1": null,
+      "team2": null
+    },
+    "match4": {
+      "team1": null,
+      "team2": null
+    }
+  },
+  "semifinals": {
+    "match1": {
+      "team1": null,
+      "team2": null
+    },
+    "match2": {
+      "team1": null,
+      "team2": null
+    }
+  },
+  "finals": {
+    "team1": null,
+    "team2": null
+  }
+}

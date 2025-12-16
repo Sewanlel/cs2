@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Turnaj</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            font-size: 3em;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tournament-bracket {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e2e8f0;
+        }
+
+        .bracket-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .bracket-round {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .bracket-round h2 {
+            text-align: center;
+            color: #2d3748;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .bracket-match {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .bracket-match-title {
+            text-align: center;
+            font-size: 0.9em;
+            color: #718096;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .bracket-team {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: all 0.2s;
+        }
+
+        .bracket-team:hover {
+            transform: translateX(3px);
+            box-shadow: 0 3px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .bracket-team-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #667eea;
+            background: white;
+        }
+
+        .bracket-team-info {
+            flex-grow: 1;
+        }
+
+        .bracket-team-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1em;
+        }
+
+        .bracket-team-seed {
+            font-size: 0.8em;
+            color: #718096;
+        }
+
+        .bracket-team-points {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 0.95em;
+        }
+
+        .bracket-semifinals {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 100px;
+        }
+
+        .bracket-finals {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: stretch;
+            height: 100%;
+        }
+
+        .bracket-finals .bracket-match {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border: 3px solid #ffa500;
+        }
+
+        .bracket-finals .bracket-match-title {
+            color: #c05621;
+            font-size: 1.1em;
+        }
+
+        .bracket-connector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        @media (max-width: 1200px) {
+            .bracket-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .bracket-semifinals {
+                gap: 40px;
+            }
+
+            .bracket-connector {
+                display: none;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CS2 Turnaj</h1>
+
+        <div class="tournament-bracket">
+            <div class="bracket-grid">
+                <!-- Quarter Finals -->
+                <div class="bracket-round">
+                    <h2>Quarter Finals</h2>
+                    <div class="bracket-match" id="qf-1">
+                        <div class="bracket-match-title">QF 1</div>
+                        <!-- Teams will be loaded dynamically -->
+                    </div>
+                    <div class="bracket-match" id="qf-2">
+                        <div class="bracket-match-title">QF 2</div>
+                        <!-- Teams will be loaded dynamically -->
+                    </div>
+                    <div class="bracket-match" id="qf-3">
+                        <div class="bracket-match-title">QF 3</div>
+                        <!-- Teams will be loaded dynamically -->
+                    </div>
+                    <div class="bracket-match" id="qf-4">
+                        <div class="bracket-match-title">QF 4</div>
+                        <!-- Teams will be loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Connector -->
+                <div class="bracket-connector"></div>
+
+                <!-- Semi Finals -->
+                <div class="bracket-round bracket-semifinals">
+                    <div>
+                        <h2>Semi Finals</h2>
+                        <div style="display: flex; flex-direction: column; gap: 40px;">
+                            <div class="bracket-match" id="sf-1">
+                                <div class="bracket-match-title">SF 1</div>
+                                <!-- Teams will be loaded dynamically -->
+                            </div>
+                            <div class="bracket-match" id="sf-2">
+                                <div class="bracket-match-title">SF 2</div>
+                                <!-- Teams will be loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Connector -->
+                <div class="bracket-connector"></div>
+
+                <!-- Finals -->
+                <div class="bracket-round bracket-finals">
+                    <div>
+                        <h2>Finals</h2>
+                        <div class="bracket-match" id="final">
+                            <div class="bracket-match-title">Final</div>
+                            <div class="bracket-team">
+                                <div class="bracket-team-info">
+                                    <div class="bracket-team-name">TBD</div>
+                                </div>
+                            </div>
+                            <div class="bracket-team">
+                                <div class="bracket-team-info">
+                                    <div class="bracket-team-name">TBD</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        // Fetch and display tournament data
+        async function loadTournamentData() {
+            try {
+                const response = await fetch(`${API_URL}/tournament`);
+                if (!response.ok) throw new Error('Failed to fetch tournament data');
+
+                const data = await response.json();
+
+                // Update Quarter Finals
+                updateQuarterFinals(data.quarterfinals);
+
+                // Update Semi Finals
+                updateSemiFinals(data.semifinals);
+
+                // Update Finals
+                updateFinals(data.finals);
+            } catch (error) {
+                console.error('Error loading tournament data:', error);
+            }
+        }
+
+        // Update quarter finals display
+        function updateQuarterFinals(quarterfinals) {
+            if (!quarterfinals) return;
+
+            const matches = ['match1', 'match2', 'match3', 'match4'];
+            matches.forEach((match, index) => {
+                const matchData = quarterfinals[match];
+                const team1 = matchData?.team1 || { name: 'TBD', points: 0, image: '' };
+                const team2 = matchData?.team2 || { name: 'TBD', points: 0, image: '' };
+
+                document.getElementById(`qf-${index + 1}`).innerHTML = `
+                    <div class="bracket-match-title">QF ${index + 1}</div>
+                    ${renderBracketTeam(team1)}
+                    ${renderBracketTeam(team2)}
+                `;
+            });
+        }
+
+        // Update semi finals display
+        function updateSemiFinals(semifinals) {
+            if (!semifinals) return;
+
+            const sf1Team1 = semifinals.match1?.team1 || { name: 'TBD', points: 0, image: '' };
+            const sf1Team2 = semifinals.match1?.team2 || { name: 'TBD', points: 0, image: '' };
+            const sf2Team1 = semifinals.match2?.team1 || { name: 'TBD', points: 0, image: '' };
+            const sf2Team2 = semifinals.match2?.team2 || { name: 'TBD', points: 0, image: '' };
+
+            document.getElementById('sf-1').innerHTML = `
+                <div class="bracket-match-title">SF 1</div>
+                ${renderBracketTeam(sf1Team1)}
+                ${renderBracketTeam(sf1Team2)}
+            `;
+
+            document.getElementById('sf-2').innerHTML = `
+                <div class="bracket-match-title">SF 2</div>
+                ${renderBracketTeam(sf2Team1)}
+                ${renderBracketTeam(sf2Team2)}
+            `;
+        }
+
+        // Update finals display
+        function updateFinals(finals) {
+            if (!finals) return;
+
+            const team1 = finals.team1 || { name: 'TBD', points: 0, image: '' };
+            const team2 = finals.team2 || { name: 'TBD', points: 0, image: '' };
+
+            document.getElementById('final').innerHTML = `
+                <div class="bracket-match-title">Final</div>
+                ${renderBracketTeam(team1)}
+                ${renderBracketTeam(team2)}
+            `;
+        }
+
+        // Render bracket team
+        function renderBracketTeam(team) {
+            const imageSrc = team.image || `https://via.placeholder.com/40?text=${team.name.charAt(0)}`;
+            return `
+                <div class="bracket-team">
+                    <img src="${imageSrc}" alt="${team.name}" class="bracket-team-image">
+                    <div class="bracket-team-info">
+                        <div class="bracket-team-name">${team.name}</div>
+                    </div>
+                    <span class="bracket-team-points">${team.points}</span>
+                </div>
+            `;
+        }
+
+        // Load data on page load
+        loadTournamentData();
+
+        // Auto-refresh every 5 seconds
+        setInterval(loadTournamentData, 5000);
+    </script>
+</body>
+</html>
