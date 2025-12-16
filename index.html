@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS2 Turnaj</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -268,80 +269,96 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        // Supabase Configuration - REPLACE THESE WITH YOUR ACTUAL VALUES
+        const SUPABASE_URL = 'https://mbizdulhilhylwabcjvu.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iaXpkdWxoaWxoeWx3YWJjanZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NjI5NTQsImV4cCI6MjA4MTQzODk1NH0.OJYorvbaTVzZv9-uUgXQj4x28LqhKIq8J-cQUVnNh3g';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let teamsCache = {};
 
         // Fetch and display tournament data
         async function loadTournamentData() {
             try {
-                const response = await fetch(`${API_URL}/tournament`);
-                if (!response.ok) throw new Error('Failed to fetch tournament data');
+                // Fetch teams
+                const { data: teams, error: teamsError } = await supabase
+                    .from('teams')
+                    .select('*')
+                    .order('id');
 
-                const data = await response.json();
+                if (teamsError) throw teamsError;
 
-                // Update Quarter Finals
-                updateQuarterFinals(data.quarterfinals);
+                // Cache teams by id for quick lookup
+                teamsCache = {};
+                teams.forEach(team => teamsCache[team.id] = team);
 
-                // Update Semi Finals
-                updateSemiFinals(data.semifinals);
+                // Fetch bracket matches
+                const { data: matches, error: matchesError } = await supabase
+                    .from('bracket_matches')
+                    .select('*');
 
-                // Update Finals
-                updateFinals(data.finals);
+                if (matchesError) throw matchesError;
+
+                // Organize matches
+                const matchesMap = {};
+                matches.forEach(m => matchesMap[m.id] = m);
+
+                // Update bracket display
+                updateQuarterFinals(matchesMap);
+                updateSemiFinals(matchesMap);
+                updateFinals(matchesMap);
             } catch (error) {
                 console.error('Error loading tournament data:', error);
             }
         }
 
+        // Get team by id from cache
+        function getTeam(teamId) {
+            if (!teamId) return { name: 'TBD', points: 0, image: '' };
+            return teamsCache[teamId] || { name: 'TBD', points: 0, image: '' };
+        }
+
         // Update quarter finals display
-        function updateQuarterFinals(quarterfinals) {
-            if (!quarterfinals) return;
+        function updateQuarterFinals(matchesMap) {
+            for (let i = 1; i <= 4; i++) {
+                const match = matchesMap[`qf${i}`];
+                const team1 = getTeam(match?.team1_id);
+                const team2 = getTeam(match?.team2_id);
 
-            const matches = ['match1', 'match2', 'match3', 'match4'];
-            matches.forEach((match, index) => {
-                const matchData = quarterfinals[match];
-                const team1 = matchData?.team1 || { name: 'TBD', points: 0, image: '' };
-                const team2 = matchData?.team2 || { name: 'TBD', points: 0, image: '' };
-
-                document.getElementById(`qf-${index + 1}`).innerHTML = `
-                    <div class="bracket-match-title">QF ${index + 1}</div>
+                document.getElementById(`qf-${i}`).innerHTML = `
+                    <div class="bracket-match-title">QF ${i}</div>
                     ${renderBracketTeam(team1)}
                     ${renderBracketTeam(team2)}
                 `;
-            });
+            }
         }
 
         // Update semi finals display
-        function updateSemiFinals(semifinals) {
-            if (!semifinals) return;
-
-            const sf1Team1 = semifinals.match1?.team1 || { name: 'TBD', points: 0, image: '' };
-            const sf1Team2 = semifinals.match1?.team2 || { name: 'TBD', points: 0, image: '' };
-            const sf2Team1 = semifinals.match2?.team1 || { name: 'TBD', points: 0, image: '' };
-            const sf2Team2 = semifinals.match2?.team2 || { name: 'TBD', points: 0, image: '' };
+        function updateSemiFinals(matchesMap) {
+            const sf1 = matchesMap['sf1'];
+            const sf2 = matchesMap['sf2'];
 
             document.getElementById('sf-1').innerHTML = `
                 <div class="bracket-match-title">SF 1</div>
-                ${renderBracketTeam(sf1Team1)}
-                ${renderBracketTeam(sf1Team2)}
+                ${renderBracketTeam(getTeam(sf1?.team1_id))}
+                ${renderBracketTeam(getTeam(sf1?.team2_id))}
             `;
 
             document.getElementById('sf-2').innerHTML = `
                 <div class="bracket-match-title">SF 2</div>
-                ${renderBracketTeam(sf2Team1)}
-                ${renderBracketTeam(sf2Team2)}
+                ${renderBracketTeam(getTeam(sf2?.team1_id))}
+                ${renderBracketTeam(getTeam(sf2?.team2_id))}
             `;
         }
 
         // Update finals display
-        function updateFinals(finals) {
-            if (!finals) return;
-
-            const team1 = finals.team1 || { name: 'TBD', points: 0, image: '' };
-            const team2 = finals.team2 || { name: 'TBD', points: 0, image: '' };
+        function updateFinals(matchesMap) {
+            const final = matchesMap['final'];
 
             document.getElementById('final').innerHTML = `
                 <div class="bracket-match-title">Final</div>
-                ${renderBracketTeam(team1)}
-                ${renderBracketTeam(team2)}
+                ${renderBracketTeam(getTeam(final?.team1_id))}
+                ${renderBracketTeam(getTeam(final?.team2_id))}
             `;
         }
 

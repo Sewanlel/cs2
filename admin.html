@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - CS2 Turnaj</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -288,6 +289,99 @@
             display: none;
         }
 
+        /* Login Screen Styles */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h2 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-box .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-box .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .login-box .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .login-box .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-box .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .login-box .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-error {
+            color: #e53e3e;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .admin-content {
+            display: none;
+        }
+
+        .admin-content.visible {
+            display: block;
+        }
+
         .bracket-section {
             background: white;
             border-radius: 15px;
@@ -421,6 +515,25 @@
     </style>
 </head>
 <body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="login-screen">
+        <div class="login-box">
+            <h2>Admin Login</h2>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" class="form-control" id="login-username" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" class="form-control" id="login-password" placeholder="Enter password">
+            </div>
+            <button class="btn-login" onclick="attemptLogin()">Login</button>
+            <p class="login-error" id="login-error">Invalid username or password</p>
+        </div>
+    </div>
+
+    <!-- Admin Content (hidden until login) -->
+    <div class="admin-content" id="admin-content">
     <div class="container">
         <h1>Admin Panel</h1>
         <p class="subtitle">CS2 Turnaj Management</p>
@@ -595,41 +708,86 @@
             </div>
         </div>
     </div>
+    </div> <!-- Close admin-content -->
 
     <div id="notification" class="notification"></div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        // Supabase Configuration - REPLACE THESE WITH YOUR ACTUAL VALUES
+        const SUPABASE_URL = 'https://mbizdulhilhylwabcjvu.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iaXpkdWxoaWxoeWx3YWJjanZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NjI5NTQsImV4cCI6MjA4MTQzODk1NH0.OJYorvbaTVzZv9-uUgXQj4x28LqhKIq8J-cQUVnNh3g';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Hardcoded credentials
+        const ADMIN_USERNAME = 'turnajAdmin';
+        const ADMIN_PASSWORD = 'digdigKOKOTDoctorPICA12346969.';
+
+        let teamsData = [];
+
+        // Login function
+        function attemptLogin() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const errorElement = document.getElementById('login-error');
+
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-content').classList.add('visible');
+                errorElement.style.display = 'none';
+            } else {
+                errorElement.style.display = 'block';
+            }
+        }
+
+        // Allow login with Enter key
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('login-password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') attemptLogin();
+            });
+            document.getElementById('login-username').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') attemptLogin();
+            });
+        });
 
         // Show notification
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = `notification ${type} show`;
-
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            setTimeout(() => notification.classList.remove('show'), 3000);
         }
 
         // Load tournament data
         async function loadTournamentData() {
             try {
-                const response = await fetch(`${API_URL}/tournament`);
-                if (!response.ok) throw new Error('Failed to fetch tournament data');
+                // Fetch teams
+                const { data: teams, error: teamsError } = await supabase
+                    .from('teams')
+                    .select('*')
+                    .order('id');
 
-                const data = await response.json();
+                if (teamsError) throw teamsError;
+                teamsData = teams;
+
+                // Fetch bracket matches
+                const { data: matches, error: matchesError } = await supabase
+                    .from('bracket_matches')
+                    .select('*');
+
+                if (matchesError) throw matchesError;
 
                 // Render teams
-                renderTeams(data.teams);
+                renderTeams(teams);
 
                 // Populate all dropdowns
-                populateDropdowns(data.teams);
+                populateDropdowns(teams);
 
                 // Load current bracket selections
-                loadQuarterfinalsSelection(data.quarterfinals);
-                loadSemifinalsSelection(data.semifinals);
-                loadFinalsSelection(data.finals);
+                const matchesMap = {};
+                matches.forEach(m => matchesMap[m.id] = m);
+
+                loadBracketSelections(matchesMap);
             } catch (error) {
                 console.error('Error loading tournament data:', error);
                 showNotification('Failed to load tournament data', 'error');
@@ -675,19 +833,11 @@
                     <div class="form-group">
                         <label>Points</label>
                         <div class="points-control">
-                            <button class="btn-small btn-decrement" onclick="adjustPoints(${team.id}, -1)">
-                                -1
-                            </button>
-                            <button class="btn-small btn-decrement" onclick="adjustPoints(${team.id}, -5)">
-                                -5
-                            </button>
+                            <button class="btn-small btn-decrement" onclick="adjustPoints(${team.id}, -1)">-1</button>
+                            <button class="btn-small btn-decrement" onclick="adjustPoints(${team.id}, -5)">-5</button>
                             <div class="points-display" id="points-${team.id}">${team.points}</div>
-                            <button class="btn-small btn-increment" onclick="adjustPoints(${team.id}, 1)">
-                                +1
-                            </button>
-                            <button class="btn-small btn-increment" onclick="adjustPoints(${team.id}, 5)">
-                                +5
-                            </button>
+                            <button class="btn-small btn-increment" onclick="adjustPoints(${team.id}, 1)">+1</button>
+                            <button class="btn-small btn-increment" onclick="adjustPoints(${team.id}, 5)">+5</button>
                         </div>
                     </div>
 
@@ -699,9 +849,7 @@
                                    id="set-points-${team.id}"
                                    placeholder="Enter points"
                                    value="${team.points}">
-                            <button class="btn-small btn-success" onclick="setPoints(${team.id})">
-                                Set
-                            </button>
+                            <button class="btn-small btn-success" onclick="setPoints(${team.id})">Set</button>
                         </div>
                     </div>
                 </div>
@@ -731,44 +879,42 @@
             document.getElementById('finals-team2').innerHTML = '<option value="">-- Select Team --</option>' + options;
         }
 
-        // Load quarterfinals selection
-        function loadQuarterfinalsSelection(quarterfinals) {
-            if (!quarterfinals) return;
+        // Load bracket selections
+        function loadBracketSelections(matchesMap) {
+            // Quarterfinals
+            for (let i = 1; i <= 4; i++) {
+                const match = matchesMap[`qf${i}`];
+                if (match?.team1_id) document.getElementById(`qf${i}-team1`).value = match.team1_id;
+                if (match?.team2_id) document.getElementById(`qf${i}-team2`).value = match.team2_id;
+            }
 
-            const matches = ['match1', 'match2', 'match3', 'match4'];
-            matches.forEach((match, index) => {
-                const matchData = quarterfinals[match];
-                if (matchData?.team1) {
-                    document.getElementById(`qf${index + 1}-team1`).value = matchData.team1.id;
-                }
-                if (matchData?.team2) {
-                    document.getElementById(`qf${index + 1}-team2`).value = matchData.team2.id;
-                }
-            });
+            // Semifinals
+            for (let i = 1; i <= 2; i++) {
+                const match = matchesMap[`sf${i}`];
+                if (match?.team1_id) document.getElementById(`sf${i}-team1`).value = match.team1_id;
+                if (match?.team2_id) document.getElementById(`sf${i}-team2`).value = match.team2_id;
+            }
+
+            // Finals
+            const final = matchesMap['final'];
+            if (final?.team1_id) document.getElementById('finals-team1').value = final.team1_id;
+            if (final?.team2_id) document.getElementById('finals-team2').value = final.team2_id;
         }
 
         // Update quarterfinals
         async function updateQuarterfinals() {
-            const data = {
-                match1Team1Id: document.getElementById('qf1-team1').value,
-                match1Team2Id: document.getElementById('qf1-team2').value,
-                match2Team1Id: document.getElementById('qf2-team1').value,
-                match2Team2Id: document.getElementById('qf2-team2').value,
-                match3Team1Id: document.getElementById('qf3-team1').value,
-                match3Team2Id: document.getElementById('qf3-team2').value,
-                match4Team1Id: document.getElementById('qf4-team1').value,
-                match4Team2Id: document.getElementById('qf4-team2').value
-            };
-
             try {
-                const response = await fetch(`${API_URL}/quarterfinals`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                if (!response.ok) throw new Error('Failed to update quarterfinals');
-
+                const updates = [];
+                for (let i = 1; i <= 4; i++) {
+                    const team1 = document.getElementById(`qf${i}-team1`).value || null;
+                    const team2 = document.getElementById(`qf${i}-team2`).value || null;
+                    updates.push(
+                        supabase.from('bracket_matches')
+                            .update({ team1_id: team1, team2_id: team2 })
+                            .eq('id', `qf${i}`)
+                    );
+                }
+                await Promise.all(updates);
                 showNotification('Quarter-finals updated successfully', 'success');
             } catch (error) {
                 console.error('Error updating quarterfinals:', error);
@@ -778,22 +924,20 @@
 
         // Reset quarterfinals
         async function resetQuarterfinals() {
-            if (!confirm('Are you sure you want to clear the quarter-finals?')) {
-                return;
-            }
+            if (!confirm('Are you sure you want to clear the quarter-finals?')) return;
 
             try {
-                const response = await fetch(`${API_URL}/quarterfinals/reset`, {
-                    method: 'POST'
-                });
-
-                if (!response.ok) throw new Error('Failed to reset quarterfinals');
-
+                const updates = [];
                 for (let i = 1; i <= 4; i++) {
+                    updates.push(
+                        supabase.from('bracket_matches')
+                            .update({ team1_id: null, team2_id: null })
+                            .eq('id', `qf${i}`)
+                    );
                     document.getElementById(`qf${i}-team1`).value = '';
                     document.getElementById(`qf${i}-team2`).value = '';
                 }
-
+                await Promise.all(updates);
                 showNotification('Quarter-finals cleared successfully', 'success');
             } catch (error) {
                 console.error('Error resetting quarterfinals:', error);
@@ -801,42 +945,20 @@
             }
         }
 
-        // Load semifinals selection
-        function loadSemifinalsSelection(semifinals) {
-            if (!semifinals) return;
-
-            if (semifinals.match1?.team1) {
-                document.getElementById('sf1-team1').value = semifinals.match1.team1.id;
-            }
-            if (semifinals.match1?.team2) {
-                document.getElementById('sf1-team2').value = semifinals.match1.team2.id;
-            }
-            if (semifinals.match2?.team1) {
-                document.getElementById('sf2-team1').value = semifinals.match2.team1.id;
-            }
-            if (semifinals.match2?.team2) {
-                document.getElementById('sf2-team2').value = semifinals.match2.team2.id;
-            }
-        }
-
         // Update semifinals
         async function updateSemifinals() {
-            const data = {
-                match1Team1Id: document.getElementById('sf1-team1').value,
-                match1Team2Id: document.getElementById('sf1-team2').value,
-                match2Team1Id: document.getElementById('sf2-team1').value,
-                match2Team2Id: document.getElementById('sf2-team2').value
-            };
-
             try {
-                const response = await fetch(`${API_URL}/semifinals`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                if (!response.ok) throw new Error('Failed to update semifinals');
-
+                const updates = [];
+                for (let i = 1; i <= 2; i++) {
+                    const team1 = document.getElementById(`sf${i}-team1`).value || null;
+                    const team2 = document.getElementById(`sf${i}-team2`).value || null;
+                    updates.push(
+                        supabase.from('bracket_matches')
+                            .update({ team1_id: team1, team2_id: team2 })
+                            .eq('id', `sf${i}`)
+                    );
+                }
+                await Promise.all(updates);
                 showNotification('Semi-finals updated successfully', 'success');
             } catch (error) {
                 console.error('Error updating semifinals:', error);
@@ -846,22 +968,20 @@
 
         // Reset semifinals
         async function resetSemifinals() {
-            if (!confirm('Are you sure you want to clear the semi-finals?')) {
-                return;
-            }
+            if (!confirm('Are you sure you want to clear the semi-finals?')) return;
 
             try {
-                const response = await fetch(`${API_URL}/semifinals/reset`, {
-                    method: 'POST'
-                });
-
-                if (!response.ok) throw new Error('Failed to reset semifinals');
-
-                document.getElementById('sf1-team1').value = '';
-                document.getElementById('sf1-team2').value = '';
-                document.getElementById('sf2-team1').value = '';
-                document.getElementById('sf2-team2').value = '';
-
+                const updates = [];
+                for (let i = 1; i <= 2; i++) {
+                    updates.push(
+                        supabase.from('bracket_matches')
+                            .update({ team1_id: null, team2_id: null })
+                            .eq('id', `sf${i}`)
+                    );
+                    document.getElementById(`sf${i}-team1`).value = '';
+                    document.getElementById(`sf${i}-team2`).value = '';
+                }
+                await Promise.all(updates);
                 showNotification('Semi-finals cleared successfully', 'success');
             } catch (error) {
                 console.error('Error resetting semifinals:', error);
@@ -869,42 +989,23 @@
             }
         }
 
-        // Load finals selection
-        function loadFinalsSelection(finals) {
-            if (!finals) return;
-
-            if (finals.team1) {
-                document.getElementById('finals-team1').value = finals.team1.id;
-            }
-            if (finals.team2) {
-                document.getElementById('finals-team2').value = finals.team2.id;
-            }
-        }
-
         // Update finals
         async function updateFinals() {
-            const team1Id = document.getElementById('finals-team1').value;
-            const team2Id = document.getElementById('finals-team2').value;
+            const team1Id = document.getElementById('finals-team1').value || null;
+            const team2Id = document.getElementById('finals-team2').value || null;
 
-            if (!team1Id || !team2Id) {
-                showNotification('Please select both teams for the finals', 'error');
-                return;
-            }
-
-            if (team1Id === team2Id) {
+            if (team1Id && team2Id && team1Id === team2Id) {
                 showNotification('Please select different teams', 'error');
                 return;
             }
 
             try {
-                const response = await fetch(`${API_URL}/finals`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ team1Id, team2Id })
-                });
+                const { error } = await supabase
+                    .from('bracket_matches')
+                    .update({ team1_id: team1Id, team2_id: team2Id })
+                    .eq('id', 'final');
 
-                if (!response.ok) throw new Error('Failed to update finals');
-
+                if (error) throw error;
                 showNotification('Finals updated successfully', 'success');
             } catch (error) {
                 console.error('Error updating finals:', error);
@@ -914,20 +1015,18 @@
 
         // Reset finals
         async function resetFinals() {
-            if (!confirm('Are you sure you want to clear the finals?')) {
-                return;
-            }
+            if (!confirm('Are you sure you want to clear the finals?')) return;
 
             try {
-                const response = await fetch(`${API_URL}/finals/reset`, {
-                    method: 'POST'
-                });
+                const { error } = await supabase
+                    .from('bracket_matches')
+                    .update({ team1_id: null, team2_id: null })
+                    .eq('id', 'final');
 
-                if (!response.ok) throw new Error('Failed to reset finals');
+                if (error) throw error;
 
                 document.getElementById('finals-team1').value = '';
                 document.getElementById('finals-team2').value = '';
-
                 showNotification('Finals cleared successfully', 'success');
             } catch (error) {
                 console.error('Error resetting finals:', error);
@@ -946,14 +1045,12 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/team/${teamId}/name`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: newName })
-                });
+                const { error } = await supabase
+                    .from('teams')
+                    .update({ name: newName })
+                    .eq('id', teamId);
 
-                if (!response.ok) throw new Error('Failed to update team name');
-
+                if (error) throw error;
                 showNotification('Team name updated successfully', 'success');
                 loadTournamentData();
             } catch (error) {
@@ -967,7 +1064,6 @@
             const pointsDisplay = document.getElementById(`points-${teamId}`);
             const currentPoints = parseInt(pointsDisplay.textContent);
             const newPoints = Math.max(0, currentPoints + delta);
-
             await updatePoints(teamId, newPoints);
         }
 
@@ -980,27 +1076,21 @@
                 showNotification('Please enter a valid number', 'error');
                 return;
             }
-
             await updatePoints(teamId, newPoints);
         }
 
-        // Update points on server
+        // Update points in Supabase
         async function updatePoints(teamId, points) {
             try {
-                const response = await fetch(`${API_URL}/team/${teamId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ points })
-                });
+                const { error } = await supabase
+                    .from('teams')
+                    .update({ points: points })
+                    .eq('id', teamId);
 
-                if (!response.ok) throw new Error('Failed to update points');
+                if (error) throw error;
 
-                const pointsDisplay = document.getElementById(`points-${teamId}`);
-                pointsDisplay.textContent = points;
-
-                const setPointsInput = document.getElementById(`set-points-${teamId}`);
-                setPointsInput.value = points;
-
+                document.getElementById(`points-${teamId}`).textContent = points;
+                document.getElementById(`set-points-${teamId}`).value = points;
                 showNotification('Points updated successfully', 'success');
             } catch (error) {
                 console.error('Error updating points:', error);
@@ -1008,26 +1098,26 @@
             }
         }
 
-        // Upload team image
+        // Upload team image (converts to base64 and stores in Supabase)
         async function uploadImage(teamId, file) {
             if (!file) return;
 
-            const formData = new FormData();
-            formData.append('image', file);
-
             try {
-                const response = await fetch(`${API_URL}/team/${teamId}/image`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Image = e.target.result;
 
-                if (!response.ok) throw new Error('Failed to upload image');
+                    const { error } = await supabase
+                        .from('teams')
+                        .update({ image: base64Image })
+                        .eq('id', teamId);
 
-                const data = await response.json();
-                const img = document.getElementById(`team-image-${teamId}`);
-                img.src = data.imageUrl + '?t=' + Date.now();
+                    if (error) throw error;
 
-                showNotification('Image uploaded successfully', 'success');
+                    document.getElementById(`team-image-${teamId}`).src = base64Image;
+                    showNotification('Image uploaded successfully', 'success');
+                };
+                reader.readAsDataURL(file);
             } catch (error) {
                 console.error('Error uploading image:', error);
                 showNotification('Failed to upload image', 'error');
@@ -1036,16 +1126,15 @@
 
         // Reset all points
         async function resetAllPoints() {
-            if (!confirm('Are you sure you want to reset all points to 0?')) {
-                return;
-            }
+            if (!confirm('Are you sure you want to reset all points to 0?')) return;
 
             try {
-                const response = await fetch(`${API_URL}/reset`, {
-                    method: 'POST'
-                });
+                const { error } = await supabase
+                    .from('teams')
+                    .update({ points: 0 })
+                    .gte('id', 1);
 
-                if (!response.ok) throw new Error('Failed to reset points');
+                if (error) throw error;
 
                 showNotification('All points reset to 0', 'success');
                 loadTournamentData();
