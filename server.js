@@ -177,7 +177,10 @@ app.post('/api/team/:id/image', upload.single('image'), (req, res) => {
             return res.status(400).json({ error: 'No image file provided' });
         }
 
-        const imageUrl = `/uploads/${req.file.filename}`;
+        // Read the image file and convert to base64
+        const imageBuffer = fs.readFileSync(req.file.path);
+        const base64Image = `data:${req.file.mimetype};base64,${imageBuffer.toString('base64')}`;
+
         const data = readData();
         const teamIndex = data.teams.findIndex(t => t.id === teamId);
 
@@ -186,14 +189,22 @@ app.post('/api/team/:id/image', upload.single('image'), (req, res) => {
             return res.status(404).json({ error: 'Team not found' });
         }
 
-        data.teams[teamIndex].image = imageUrl;
+        // Store base64 image in JSON
+        data.teams[teamIndex].image = base64Image;
         writeData(data);
+
+        // Delete the temporary uploaded file
+        fs.unlinkSync(req.file.path);
+
         res.json({
             message: 'Team image updated successfully',
-            imageUrl: imageUrl
+            imageUrl: base64Image
         });
     } catch (error) {
         console.error('Error uploading image:', error);
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
         res.status(500).json({ error: 'Failed to upload image' });
     }
 });
